@@ -135,3 +135,44 @@ monitor them. See [benchmark/docker/README.md](benchmark/docker/README.md) for
 the full env-var surface and per-provider sharding.
 
 The scorer and summarizer are provider-agnostic and score any provider's output.
+
+## Credit and citation
+
+This project is an independent evaluation. It does not create a benchmark. The
+benchmark is [MemConflict](https://github.com/TaoZhen1110/MemConflict), by Zhen
+Tao, Jinxiang Zhao, Peng Liu, Dinghao Xi, Yanfang Chen, Wei Xu, and Zhiyu Li.
+
+MemConflict supplies the parts that make the comparison possible:
+
+| From MemConflict | Where it is used here |
+|---|---|
+| The `Step4_4.jsonl` dataset: 30 personas, 3,750 questions, gold labels | Every provider run, and the conversation browser on the published site |
+| The three conflict types: dynamic, static, conditional | The `by_conflict_type` split, and the macro answer accuracy headline metric |
+| The metric definitions: answer accuracy, supporting evidence hit at K, support rank, update order recognition, contradiction recognition, evidence utilization gap | Reported in [docs/BENCHMARK_MATRIX.md](docs/BENCHMARK_MATRIX.md), under the paper's own names |
+| `Evaluation/eval_scoring.py`, the LLM-judge scorer | Wrapped by `benchmark/score_resumable.py`, which adds resumability and calls the upstream scorer unchanged |
+
+The MemConflict repository is pinned as a submodule at `external/MemConflict`
+and is never modified. The dialogues shown in the conversation browser are
+MemConflict dataset content, and the copyright in them stays with the
+MemConflict authors.
+
+If you use this work, cite the MemConflict preprint:
+
+```bibtex
+@article{tao2026memconflict,
+  title={MemConflict: Evaluating Long-Term Memory Systems Under Memory Conflicts},
+  author={Tao, Zhen and Zhao, Jinxiang and Liu, Peng and Xi, Dinghao and Chen, Yanfang and Xu, Wei and Li, Zhiyu},
+  journal={arXiv preprint arXiv:2605.20926},
+  year={2026}
+}
+```
+
+The measured numbers in this repository are not MemConflict's published
+numbers. They come from a self-hosted serving stack and a different set of
+providers, so they compare only to each other. The differences from the
+authors' own evaluation runner are recorded in
+[docs/DECISIONS.md](docs/DECISIONS.md).
+
+The seven providers under test, and the Hermes agent itself, each keep their
+own licenses. `external/` holds them as unmodified submodules: hermes-agent and
+mnemosyne under MIT, RetainDB under Apache-2.0, honcho under AGPL-3.0.
