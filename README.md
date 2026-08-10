@@ -173,6 +173,18 @@ providers, so they compare only to each other. The differences from the
 authors' own evaluation runner are recorded in
 [docs/DECISIONS.md](docs/DECISIONS.md).
 
-The seven providers under test, and the Hermes agent itself, each keep their
-own licenses. `external/` holds them as unmodified submodules: hermes-agent and
-mnemosyne under MIT, RetainDB under Apache-2.0, honcho under AGPL-3.0.
+## License
+
+The work in this repository is MIT-licensed: the shared harness, the seven
+provider adapters, the documentation, and the published site. See
+[LICENSE](LICENSE). Use it for anything, and keep the copyright notice.
+
+The license covers this repository's own work only. Two things it does not
+reach:
+
+- **`external/`.** The seven providers under test, and the Hermes agent itself,
+  are pinned as unmodified submodules and keep their own licenses: hermes-agent
+  and mnemosyne under MIT, RetainDB under Apache-2.0, honcho under AGPL-3.0.
+- **MemConflict dataset content.** The dialogues in
+  `docs/memconflict-sessions/data.js`, and the dataset they are built from,
+  belong to the MemConflict authors.
