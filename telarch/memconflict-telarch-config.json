@@ -1,0 +1,72 @@
+{
+  "schema": "memconflict-telarch-preregistration/v1",
+  "registered": "2026-10-21",
+  "note": "Written before any MemConflict generation run. Settings are not tuned on MemConflict; the telarch arm uses the Telarch round-3 pre-registered reference configuration unchanged.",
+  "versions": {
+    "kibisis": {"version": "0.1.0a9", "tag": "v0.1.0-alpha.9", "commit": "26a009c385d1b1e1d95eb80f96d121465b8f55f6"},
+    "harpe": {"version": "0.1.0a6", "tag": "v0.1.0-alpha.6", "commit": "e54904c76d0785b9abeedc89f76ee60948568c0d"},
+    "telarch_evals": {"repo": "Perseus-Computing-LLC/telarch-benchmarks", "subdirectory": "evals", "commit": "7e990b73af76ff79c02346f3da65b5018048606f"}
+  },
+  "telarch_arm": {
+    "memory_system": "telarch",
+    "implementation": "telarch_evals.memory.TelarchMemory",
+    "settings_source": "telarch-evals reports/round3-config.json 'reference' block (budget, candidates, per_term, policy, counter, planner, fill_floor, recency, mmr, bridge, resolve_dates, surface_conflicts); encrypt and passthrough_under are TelarchMemory defaults",
+    "settings": {
+      "budget": 8000,
+      "candidates": 200,
+      "per_term": 50,
+      "policy": "least_relevant",
+      "encrypt": true,
+      "counter": "o200k",
+      "planner": "fanout",
+      "fill_floor": 0.9,
+      "passthrough_under": 0,
+      "recency": 0.0,
+      "mmr": 0.0,
+      "bridge": 0,
+      "resolve_dates": true,
+      "surface_conflicts": false
+    },
+    "admission_gate": false,
+    "unit": "one dialogue round: a user turn and the assistant turns that follow it (LongMemEval convention in telarch-benchmarks)",
+    "context_order": "chronological",
+    "plugin_native_recall": true
+  },
+  "kibisis_plugin_arm": {
+    "memory_system": "kibisis-plugin",
+    "implementation": "replica of hermes plugin kibisis-vault KibisisMemoryProvider.prefetch() over a per-persona encrypted vault",
+    "write_path": "vault.put per dialogue round with the kibisis_remember tool defaults: scope 'default', epistemic_state chosen by the admission gate (auto_gate on)",
+    "recall": {"search_limit": 12, "match": "any", "keep_if_rank_score_at_most": "best / 2", "result_cap": 6, "conventions_cap": 4, "scope": "default"},
+    "plugin_native_recall": true,
+    "caveat": "The deployed plugin has no automatic write path; storing every round is a benchmark write policy, not plugin behaviour."
+  },
+  "control_arm": {
+    "memory_system": "mnemosyne",
+    "preset": "v5ftc (mnemosyne_featured_clocksync)",
+    "purpose": "rerun on the same hardware to measure drift against the published v5ftc table before comparing Telarch to published rows",
+    "method": "retrieval-frozen replay (benchmark/replay_answers.py) of the published mnemosyne_results_v5ftc.jsonl: every question is re-answered from its stored top-5 Retrieved_Memories on the run hardware with the shared answer contract, then scored by the same judge. SEH@K and log-rank@K are unchanged by construction, so the AA delta against the published v5ftc row isolates answer-model + judge drift from the hardware change.",
+    "judge_only_check": "the published Mnemosyne v5ftc answers are also re-judged unchanged on the run hardware, separating judge drift from answer drift"
+  },
+  "amendments": [
+    {
+      "date": "2026-10-22",
+      "before_any_generation_run": true,
+      "changes": [
+        "run_contract.answer_model corrected: the published v5ftc generate manifests run the answer model with thinking ON (THINKING=1, MEMCONFLICT_ENABLE_THINKING=1) and the shared answer_env decoding; the telarch_* presets already set this, only the description said 'thinking off'.",
+        "control_arm.method fixed to the retrieval-frozen replay design; a full Mnemosyne pipeline rerun (its embedding and extraction stack) is not part of this run."
+      ]
+    }
+  ],
+  "run_contract": {
+    "dataset": "MemConflict Step4_4.jsonl, 30 personas, 3,750 questions",
+    "answer_model": "AxionML/Qwen3.5-4B-NVFP4 served by vLLM as qwen3.5-4b, thinking ON, shared answer_env decoding (temperature 1.0, top_p 0.95, top_k 20, presence_penalty 1.5, max_tokens 16384) as in the published v5ftc generate manifests",
+    "judge": "unsloth/gemma-4-12b-it-NVFP4 (gemma-4-12b), penalty judge gj12pen, as scored for the published v5ftc rows",
+    "top_k": 5,
+    "external_api_spend": 0
+  },
+  "primary_metrics": ["macro answer score (gj12pen judge)", "per conflict-type answer scores", "retrieval latency", "context tokens per answer"],
+  "disclosures": [
+    "Hardware differs from the published rows unless run on a Blackwell (SM100/SM120) GPU with native NVFP4; any other GPU is disclosed and calibrated by the Mnemosyne control arm.",
+    "Telarch packs up to 8,000 o200k tokens per answer; the published providers mostly inject top-5/6 items. Context size is reported next to every score."
+  ]
+}
